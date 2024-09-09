@@ -3,15 +3,16 @@ package metric
 import (
 	"context"
 	"fmt"
+	"github.com/danyukod/observability-optl-go/internal/metric/otlp"
 	"github.com/danyukod/observability-optl-go/internal/metric/prometheus"
+	"github.com/danyukod/observability-optl-go/internal/metric/stdout"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"os"
 )
 
-func initMeterProvider(ctx context.Context, res *resource.Resource) (func(context.Context) error, error) {
+func InitMeterProvider(ctx context.Context, res *resource.Resource) (func(context.Context) error, error) {
 	metricExporter, err := initMetricReader(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create metric exporter: %w", err)
@@ -29,11 +30,10 @@ func initMeterProvider(ctx context.Context, res *resource.Resource) (func(contex
 
 func initMetricReader(ctx context.Context) (sdkmetric.Reader, error) {
 	if os.Getenv("PROMETHEUS") == "true" {
-		return prometheus.PrometheusReader()
+		return prometheus.Reader()
 	}
-	exporter, err := otlpmetrichttp.New(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create metric exporter: %w", err)
+	if os.Getenv("ENV") == "local" {
+		return stdout.Reader()
 	}
-	return sdkmetric.NewPeriodicReader(exporter), nil
+	return otlp.Reader(ctx)
 }

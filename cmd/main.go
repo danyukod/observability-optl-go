@@ -1,9 +1,17 @@
 package main
 
-import "context"
+import (
+	"context"
+	"github.com/danyukod/observability-optl-go/pkg"
+	"os"
+	"os/signal"
+)
 
-const meterName = "github.com/danyukod/observability-optl-go/prometheus"
+const serviceName = "obsercability-optl-go"
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	pkg.InitObservability(ctx)
 }

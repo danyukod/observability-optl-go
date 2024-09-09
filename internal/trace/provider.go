@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/danyukod/observability-optl-go/internal/trace/jaeger"
+	"github.com/danyukod/observability-optl-go/internal/trace/otlp"
+	"github.com/danyukod/observability-optl-go/internal/trace/stdout"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"os"
 )
 
-func initTracerProvider(ctx context.Context, res *resource.Resource) (func(context.Context) error, error) {
+func InitTraceProvider(ctx context.Context, res *resource.Resource) (func(context.Context) error, error) {
 	traceExporter, err := initTraceExporter(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create trace exporter: %w", err)
@@ -32,14 +33,13 @@ func initTracerProvider(ctx context.Context, res *resource.Resource) (func(conte
 }
 
 func initTraceExporter(ctx context.Context) (sdktrace.SpanExporter, error) {
+	if os.Getenv("ENV") == "local" {
+		return stdout.SpanExporter()
+	}
+
 	if os.Getenv("JAEGER") == "true" {
 		return jaeger.SpanExporter(ctx)
 	}
 
-	exporter, err := otlptracehttp.New(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create otlp exporter: %w", err)
-	}
-
-	return exporter, nil
+	return otlp.SpanExporter(ctx)
 }
