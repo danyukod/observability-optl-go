@@ -26,6 +26,7 @@ func MetricsMiddleware(serviceName string) gin.HandlerFunc {
 		attributes := sdkmetric.WithAttributes(app, path)
 
 		duration := time.Since(startTime).Seconds()
+
 		requestCounter.Add(c.Request.Context(), 1, attributes)
 		requestDuration.Record(c.Request.Context(), duration, attributes)
 	}
