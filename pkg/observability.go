@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func InitObservability(ctx context.Context, name string) {
+func InitObservability(ctx context.Context, name string) func() {
 	serviceName := semconv.ServiceNameKey.String(name)
 
 	res, err := resource.New(ctx,
@@ -27,30 +27,26 @@ func InitObservability(ctx context.Context, name string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func() {
-		if err := shutdownTracerProvider(ctx); err != nil {
-			log.Fatalf("failed to shutdown TracerProvider: %s", err)
-		}
-	}()
 
 	shutdownMeterProvider, err := metric.InitMeterProvider(ctx, res)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func() {
-		if err := shutdownMeterProvider(ctx); err != nil {
-			log.Fatalf("failed to shutdown MeterProvider: %s", err)
-		}
-	}()
 
 	shutdownLoggerProvider, err := logger.InitLoggerProvider(ctx, res)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func() {
-		if err := shutdownLoggerProvider(ctx); err != nil {
+
+	return func() {
+		if err := shutdownTracerProvider; err != nil {
+			log.Fatalf("failed to shutdown TracerProvider: %s", err)
+		}
+		if err := shutdownMeterProvider; err != nil {
+			log.Fatalf("failed to shutdown MeterProvider: %s", err)
+		}
+		if err := shutdownLoggerProvider; err != nil {
 			log.Fatalf("failed to shutdown LoggerProvider: %s", err)
 		}
-	}()
-
+	}
 }

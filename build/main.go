@@ -16,7 +16,8 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	pkg.InitObservability(ctx, serviceName)
+	shutdownObservability := pkg.InitObservability(ctx, serviceName)
+	defer shutdownObservability()
 
 	//Start the prometheus HTTP server and pass the exporter Collector to it
 	go prometheus.ServeMetrics()
@@ -33,4 +34,5 @@ func main() {
 	})
 
 	router.Run(":8080")
+
 }
