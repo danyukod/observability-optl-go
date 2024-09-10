@@ -52,4 +52,5 @@ func InitObservability(ctx context.Context, name string) {
 			log.Fatalf("failed to shutdown LoggerProvider: %s", err)
 		}
 	}()
+
 }
