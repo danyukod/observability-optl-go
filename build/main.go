@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"github.com/danyukod/observability-optl-go/api/middleware"
-	"github.com/danyukod/observability-optl-go/internal/metric/prometheus"
 	"github.com/danyukod/observability-optl-go/pkg"
 	"github.com/gin-gonic/gin"
 	"os"
@@ -16,11 +15,11 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	shutdownObservability := pkg.InitObservability(ctx, serviceName)
+	shutdownObservability := observability.Init(ctx, serviceName)
 	defer shutdownObservability()
 
 	//Start the prometheus HTTP server and pass the exporter Collector to it
-	go prometheus.ServeMetrics()
+	go observability.ServeMetrics()
 
 	// Set up Gin router
 	router := gin.Default()

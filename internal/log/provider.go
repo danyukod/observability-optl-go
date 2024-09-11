@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"github.com/danyukod/observability-optl-go/internal/constants"
 	"github.com/danyukod/observability-optl-go/internal/log/otlp"
 	"github.com/danyukod/observability-optl-go/internal/log/stdout"
 	"go.opentelemetry.io/otel/log/global"
@@ -31,8 +32,8 @@ func InitLoggerProvider(ctx context.Context, res *resource.Resource) (func(conte
 }
 
 func initLoggerExporter(ctx context.Context) (logsdk.Exporter, error) {
-	if os.Getenv("ENV") == "local" {
-		return stdout.Exporter(ctx)
+	if os.Getenv(constants.LoggerExporter) == constants.OpenTelemetry {
+		return otlp.Exporter(ctx)
 	}
-	return otlp.Exporter(ctx)
+	return stdout.Exporter(ctx)
 }

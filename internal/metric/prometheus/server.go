@@ -2,17 +2,19 @@ package prometheus
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"log"
-	"net/http"
 )
 
-func ServeMetrics() {
-	log.Printf("serving metrics at localhost:8181/metrics")
-	http.Handle("/metrics", promhttp.Handler())
-	err := http.ListenAndServe(":8181", nil) //nolint:gosec // Ignoring G114: Use of net/http serve function that has no support for setting timeouts.
+func InitPrometheusServer(channelError chan error) {
+	router := gin.Default()
+
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	err := router.Run(":8181")
 	if err != nil {
 		fmt.Printf("error serving http: %v", err)
+		channelError <- err
 		return
 	}
 }

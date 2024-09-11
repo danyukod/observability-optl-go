@@ -3,6 +3,7 @@ package trace
 import (
 	"context"
 	"fmt"
+	"github.com/danyukod/observability-optl-go/internal/constants"
 	"github.com/danyukod/observability-optl-go/internal/trace/jaeger"
 	"github.com/danyukod/observability-optl-go/internal/trace/otlp"
 	"github.com/danyukod/observability-optl-go/internal/trace/stdout"
@@ -33,13 +34,11 @@ func InitTraceProvider(ctx context.Context, res *resource.Resource) (func(contex
 }
 
 func initTraceExporter(ctx context.Context) (sdktrace.SpanExporter, error) {
-	if os.Getenv("ENV") == "local" {
-		return stdout.SpanExporter()
-	}
-
-	if os.Getenv("JAEGER") == "true" {
+	if os.Getenv(constants.TracerExporter) == constants.Jaeger {
 		return jaeger.SpanExporter(ctx)
 	}
-
-	return otlp.SpanExporter(ctx)
+	if os.Getenv(constants.TracerExporter) == constants.OpenTelemetry {
+		return otlp.SpanExporter(ctx)
+	}
+	return stdout.SpanExporter()
 }
